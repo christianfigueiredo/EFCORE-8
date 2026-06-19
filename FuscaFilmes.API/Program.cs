@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<Contexto>(options =>
+builder.Services.AddDbContext<DBContexto>(options =>
     options.UseSqlite(builder.Configuration["ConnectionStrings:FuscaFilmesStr"])
 );
 
@@ -26,6 +26,7 @@ builder.Services.Configure<JsonOptions>(options =>
 });
 
 
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -34,9 +35,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapGet("/CreateDB", (DBContexto contexto) =>
+{    
+   contexto.Database.EnsureCreated();   
+})
+.WithOpenApi();
+
 app.UseHttpsRedirection();
 
-app.MapGet("/diretores", (Contexto contexto) =>
+app.MapGet("/diretores", (DBContexto contexto) =>
 {    
     return contexto.Diretores.Include(d => d.Filmes)
     .ToList();
@@ -44,14 +51,14 @@ app.MapGet("/diretores", (Contexto contexto) =>
 })
 .WithOpenApi();
 
-app.MapPost("/diretores", (Contexto contexto,Diretor diretor) =>
+app.MapPost("/diretores", (DBContexto contexto,Diretor diretor) =>
 {    
     contexto.Diretores.Add(diretor);
     contexto.SaveChanges();
 })
 .WithOpenApi();
 
-app.MapPut("/diretores/{diretorId}", (Contexto contexto,int diretorId, Diretor diretorNovo) =>
+app.MapPut("/diretores/{diretorId}", (DBContexto contexto,int diretorId, Diretor diretorNovo) =>
 {
     var diretor = contexto.Diretores.Find(diretorId);
     if (diretor != null){
@@ -69,7 +76,7 @@ app.MapPut("/diretores/{diretorId}", (Contexto contexto,int diretorId, Diretor d
 })
 .WithOpenApi();
 
-app.MapDelete("/diretores/{diretorId}", (Contexto contexto, int diretorId) =>
+app.MapDelete("/diretores/{diretorId}", (DBContexto contexto, int diretorId) =>
 {
     
     var diretor = contexto.Diretores.Find(diretorId);
