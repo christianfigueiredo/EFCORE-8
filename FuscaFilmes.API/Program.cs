@@ -88,6 +88,15 @@ app.MapDelete("/diretores/{diretorId}", (DBContexto contexto, int diretorId) =>
 .WithOpenApi();
 
 
+app.MapGet("/filmes", (DBContexto contexto) =>
+{    
+    return contexto.Filmes.Include(f => f.Diretor)
+    .ToList();
+   
+})
+.WithOpenApi();
+
+
 app.Run();
 
 
