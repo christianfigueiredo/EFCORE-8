@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<DBContexto>(options =>
     options.UseSqlite(builder.Configuration["ConnectionStrings:FuscaFilmesStr"])
+           .LogTo(Console.WriteLine)
 );
 
 /* using (var context = new Contexto())
@@ -46,6 +47,16 @@ app.UseHttpsRedirection();
 app.MapGet("/diretores", (DBContexto contexto) =>
 {    
     return contexto.Diretores.Include(d => d.Filmes)
+    .ToList();
+   
+})
+.WithOpenApi();
+
+app.MapGet("/diretores/{id}", (int id, DBContexto contexto) =>
+{    
+    return contexto.Diretores
+    .Where(d => d.Id == id)
+    .Include(d => d.Filmes)
     .ToList();
    
 })
@@ -96,6 +107,45 @@ app.MapGet("/filmes", (DBContexto contexto) =>
 })
 .WithOpenApi();
 
+app.MapGet("/filmes/{id}", (int id, DBContexto contexto) =>
+{    
+    return contexto.Filmes
+    .Where(f => f.Id == id)
+    .Include(f => f.Diretor)
+    .ToList();
+   
+})
+.WithOpenApi();
+
+app.MapGet("/filmesbyAno", (DBContexto contexto) =>
+{    
+    return contexto.Filmes
+            .Include(f => f.Diretor)
+            .OrderByDescending(f => f.Ano)
+            .ThenBy(f => f.Titulo)
+            .ToList();   
+})
+.WithOpenApi();
+
+
+app.MapGet("/filmesEFFunctions/byName/{titulo}", (string titulo, DBContexto contexto) =>
+{    
+    return contexto.Filmes
+         .Where(f => 
+            EF.Functions.Like(f.Titulo, $"%{titulo}%"))
+            .Include(f => f.Diretor)
+            .ToList();   
+})
+.WithOpenApi();
+
+app.MapGet("/filmesLinQ/byName/{titulo}", (string titulo, DBContexto contexto) =>
+{    
+    return contexto.Filmes
+    .Where(f => f.Titulo.Contains(titulo))
+    .Include(f => f.Diretor)
+    .ToList();       
+})
+.WithOpenApi();
 
 app.Run();
 
